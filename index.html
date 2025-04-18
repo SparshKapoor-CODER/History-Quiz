@@ -16,82 +16,95 @@
     </div>
   </div>
 
+  <!-- Main Quiz Container -->
   <div class="quiz-container" id="quiz">
     <div class="quiz-header">
       <h2 id="question">Question text</h2>
       <ul>
         <li>
           <input type="radio" name="answer" id="a" class="answer">
-          <label for="a" id="a_text">Question</label>
+          <label for="a" id="a_text">Option A</label>
         </li>
         <li>
           <input type="radio" name="answer" id="b" class="answer">
-          <label for="b" id="b_text">Question</label>
+          <label for="b" id="b_text">Option B</label>
         </li>
         <li>
           <input type="radio" name="answer" id="c" class="answer">
-          <label for="c" id="c_text">Question</label>
+          <label for="c" id="c_text">Option C</label>
         </li>
         <li>
           <input type="radio" name="answer" id="d" class="answer">
-          <label for="d" id="d_text">Question</label>
+          <label for="d" id="d_text">Option D</label>
         </li>
       </ul>
     </div>
     <button id="submit">Submit</button>
   </div>
 
-  <!-- Load Google Platform Library -->
+  <!-- Google Platform Library -->
   <script src="https://apis.google.com/js/platform.js" async defer></script>
-
+  
   <!-- Cookie Consent & Google Auth Script -->
   <script>
-    // On load, show the cookie modal if consent hasn't been given
+    // When the page loads, show the cookie modal if consent isn't set
     document.addEventListener('DOMContentLoaded', () => {
       if (!localStorage.getItem('cookieConsent')) {
         document.getElementById('cookie-modal').style.display = 'flex';
       }
     });
 
-    // Initialize Google Auth2
+    // Initialize Google Auth2 with redirect URI matching your GitHub Pages origin
     function initGoogleAuth() {
       gapi.load('auth2', () => {
         gapi.auth2.init({
-          client_id: '614345734931-s4k43s0un20121nr54rq084hvkpklg7i.apps.googleusercontent.com', // TODO: replace with YOUR actual Client ID
-          scope: 'profile email'
+          client_id: '614345734931-s4k43s0un20121nr54rq084hvkpklg7i.apps.googleusercontent.com',  // <-- replace with your actual Client ID
+          scope: 'profile email',
+          ux_mode: 'redirect',
+          // must match one of your Authorized redirect URIs in Cloud Console
+          redirect_uri: window.location.origin + '/'
         });
       });
     }
     window.addEventListener('load', initGoogleAuth);
 
-    // Accept button handler: hide modal, store consent, sign in, send email
+    // Handle Accept button click
     document.getElementById('accept-cookies').addEventListener('click', async () => {
+      // 1) Store consent locally
       localStorage.setItem('cookieConsent', 'true');
       document.getElementById('cookie-modal').style.display = 'none';
 
+      // 2) Sign in (redirect flow)
       const auth2 = gapi.auth2.getAuthInstance();
-      let googleUser;
-      if (auth2.isSignedIn.get()) {
-        googleUser = auth2.currentUser.get();
+      if (!auth2.isSignedIn.get()) {
+        auth2.signIn(); // will redirect to Google and back
       } else {
-        googleUser = await auth2.signIn();
+        const profile = auth2.currentUser.get().getBasicProfile();
+        sendEmail(profile.getEmail());
       }
+    });
 
-      const profile = googleUser.getBasicProfile();
-      const email = profile.getEmail();
+    // After redirect, if signed in, send email
+    window.addEventListener('load', () => {
+      const auth2 = gapi.auth2.getAuthInstance();
+      if (auth2 && auth2.isSignedIn.get()) {
+        const profile = auth2.currentUser.get().getBasicProfile();
+        sendEmail(profile.getEmail());
+      }
+    });
 
+    function sendEmail(email) {
       fetch('/api/save-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       })
-      .then(res => console.log('Email saved!'))
-      .catch(err => console.error('Error saving email:', err));
-    });
+      .then(() => console.log('Email saved successfully.'))
+      .catch(console.error);
+    }
   </script>
 
-  <!-- Original quiz logic -->
+  <!-- Original quiz script -->
   <script src="script.js"></script>
-
 </body>
 </html>
