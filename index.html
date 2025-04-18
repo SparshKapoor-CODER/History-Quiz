@@ -1,97 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>History Quiz</title>
-    <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>History Quiz</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-    <!-- Cookie Consent Modal -->
-    <div id="cookie-modal" class="cookie-modal">
-      <div class="cookie-content">
-        <p>We use cookies to improve your experience. By clicking “Accept,” you agree to share your email address for personalization.</p>
-        <button id="accept-cookies">Accept</button>
-      </div>
+  <!-- Cookie Consent Modal -->
+  <div id="cookie-modal" class="cookie-modal">
+    <div class="cookie-content">
+      <p>We use cookies to improve your experience. By clicking “Accept,” you agree to share your email address for personalization.</p>
+      <button id="accept-cookies">Accept</button>
     </div>
+  </div>
 
-    <div class="quiz-container" id="quiz">
-        <div class="quiz-header">
-          <h2 id="question">Question text</h2>
-          <ul>
-            <li>
-              <input type="radio" name="answer" id="a" class="answer">
-              <label for="a" id="a_text">Question</label>
-            </li>
-            <li>
-              <input type="radio" name="answer" id="b" class="answer">
-              <label for="b" id="b_text">Question</label>
-            </li>
-            <li>
-              <input type="radio" name="answer" id="c" class="answer">
-              <label for="c" id="c_text">Question</label>
-            </li>
-            <li>
-              <input type="radio" name="answer" id="d" class="answer">
-              <label for="d" id="d_text">Question</label>
-            </li>
-          </ul>
-        </div>
-        <button id="submit">Submit</button>
+  <div class="quiz-container" id="quiz">
+    <div class="quiz-header">
+      <h2 id="question">Question text</h2>
+      <ul>
+        <li>
+          <input type="radio" name="answer" id="a" class="answer">
+          <label for="a" id="a_text">Question</label>
+        </li>
+        <li>
+          <input type="radio" name="answer" id="b" class="answer">
+          <label for="b" id="b_text">Question</label>
+        </li>
+        <li>
+          <input type="radio" name="answer" id="c" class="answer">
+          <label for="c" id="c_text">Question</label>
+        </li>
+        <li>
+          <input type="radio" name="answer" id="d" class="answer">
+          <label for="d" id="d_text">Question</label>
+        </li>
+      </ul>
     </div>
+    <button id="submit">Submit</button>
+  </div>
 
-    <!-- Google Platform Library -->
-    <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <!-- Load Google Platform Library -->
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
 
-    <!-- Cookie Consent & Google Auth Script -->
-    <script>
-      // Show modal if no consent
-      document.addEventListener('DOMContentLoaded', () => {
-        if (!localStorage.getItem('cookieConsent')) {
-          document.getElementById('cookie-modal').style.display = 'flex';
-        }
-      });
-
-      // Initialize Google Auth2
-      function initGoogleAuth() {
-        gapi.load('auth2', () => {
-          gapi.auth2.init({
-            client_id: 'YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com',
-            scope: 'profile email'
-          });
-        });
+  <!-- Cookie Consent & Google Auth Script -->
+  <script>
+    // On load, show the cookie modal if consent hasn't been given
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!localStorage.getItem('cookieConsent')) {
+        document.getElementById('cookie-modal').style.display = 'flex';
       }
-      window.addEventListener('load', initGoogleAuth);
+    });
 
-      // Handle Accept button
-      document.getElementById('accept-cookies').addEventListener('click', async () => {
-        localStorage.setItem('cookieConsent', 'true');
-        document.getElementById('cookie-modal').style.display = 'none';
-
-        const auth2 = gapi.auth2.getAuthInstance();
-        let googleUser;
-        if (auth2.isSignedIn.get()) {
-          googleUser = auth2.currentUser.get();
-        } else {
-          googleUser = await auth2.signIn();
-        }
-
-        const profile = googleUser.getBasicProfile();
-        const email = profile.getEmail();
-
-        fetch('/api/save-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
-        })
-        .then(res => console.log('Email saved!'))
-        .catch(err => console.error('Error saving email:', err));
+    // Initialize Google Auth2
+    function initGoogleAuth() {
+      gapi.load('auth2', () => {
+        gapi.auth2.init({
+          client_id: '614345734931-s4k43s0un20121nr54rq084hvkpklg7i.apps.googleusercontent.com', // TODO: replace with YOUR actual Client ID
+          scope: 'profile email'
+        });
       });
-    </script>
+    }
+    window.addEventListener('load', initGoogleAuth);
 
-    <!-- Original quiz script -->
-    <script src="script.js"></script>
+    // Accept button handler: hide modal, store consent, sign in, send email
+    document.getElementById('accept-cookies').addEventListener('click', async () => {
+      localStorage.setItem('cookieConsent', 'true');
+      document.getElementById('cookie-modal').style.display = 'none';
+
+      const auth2 = gapi.auth2.getAuthInstance();
+      let googleUser;
+      if (auth2.isSignedIn.get()) {
+        googleUser = auth2.currentUser.get();
+      } else {
+        googleUser = await auth2.signIn();
+      }
+
+      const profile = googleUser.getBasicProfile();
+      const email = profile.getEmail();
+
+      fetch('/api/save-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      })
+      .then(res => console.log('Email saved!'))
+      .catch(err => console.error('Error saving email:', err));
+    });
+  </script>
+
+  <!-- Original quiz logic -->
+  <script src="script.js"></script>
 
 </body>
 </html>
